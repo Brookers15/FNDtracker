@@ -1,0 +1,1924 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0B1416" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="FND Pulse" />
+  <title>FND Pulse — Flare Logger &amp; Trigger Tracker</title>
+  <link
+    rel="icon"
+    type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230B1416'/%3E%3Ccircle cx='32' cy='32' r='22' fill='%23122428' stroke='%231E4B52' stroke-width='2'/%3E%3Cpath d='M15 32h8l4-10 5 19 4-14 4 5h9' fill='none' stroke='%232DD4BF' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"
+  />
+  <style>
+    :root {
+      --bg-canvas: #0b1416;
+      --bg-surface: #122024;
+      --bg-inset: #0d191c;
+      --bg-elevated: #172a2f;
+      --border-subtle: #223a3f;
+      --border-strong: #2d4e55;
+      --text-primary: #e6f1f2;
+      --text-secondary: #9fb6ba;
+      --text-muted: #7f999d;
+      --accent: #2dd4bf;
+      --accent-hover: #5eead4;
+      --accent-text: #061416;
+      --warning-bg: #2e1d0b;
+      --warning-border: #8a5617;
+      --warning-text: #fcd39d;
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      overscroll-behavior-y: contain;
+    }
+
+    button,
+    input,
+    textarea {
+      font-family: inherit;
+    }
+
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .top-header {
+      border-bottom: 1px solid #1a2d31;
+      background: var(--bg-canvas);
+    }
+
+    .top-header-inner {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1.125rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: #f0f7f8;
+    }
+
+    .header-return-btn {
+      min-height: 44px;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(45, 212, 191, 0.45);
+      background: #153035;
+      color: #b9f5ec;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .main-container {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 20px 16px 12px;
+    }
+
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .subtext {
+      margin: 6px 0 0;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .mono-tabular {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Notice Banner */
+    .notice-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(45, 212, 191, 0.45);
+      background: #13292d;
+      color: #d6faf4;
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    .notice-dismiss {
+      min-width: 44px;
+      min-height: 44px;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--accent);
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Primary Buttons */
+    .btn-primary-giant {
+      width: 100%;
+      min-height: 140px;
+      margin-top: 14px;
+      padding: 24px 20px;
+      border: none;
+      border-radius: var(--radius-md);
+      background: var(--accent);
+      color: var(--accent-text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.15s ease;
+    }
+
+    .btn-primary-giant:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-primary-giant:active {
+      transform: scale(0.985);
+    }
+
+    .btn-primary-giant .giant-title {
+      font-size: 1.55rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    .btn-primary-giant .giant-sub {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #082326;
+    }
+
+    .btn-primary {
+      width: 100%;
+      min-height: 56px;
+      padding: 14px 20px;
+      border: none;
+      border-radius: var(--radius-md);
+      background: var(--accent);
+      color: var(--accent-text);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: transform 0.12s ease, background-color 0.15s ease;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.985);
+    }
+
+    .btn-secondary {
+      width: 100%;
+      min-height: 54px;
+      padding: 13px 18px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-strong);
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      font-size: 0.96rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: background-color 0.15s ease, transform 0.12s ease;
+    }
+
+    .btn-secondary:hover {
+      background: #1f373d;
+    }
+
+    .btn-secondary:active {
+      transform: scale(0.985);
+    }
+
+    .btn-action-contact {
+      width: 100%;
+      min-height: 60px;
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(45, 212, 191, 0.45);
+      background: #1a3a41;
+      color: #f0f7f8;
+      font-size: 1rem;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .btn-action-contact:hover {
+      background: #224b54;
+    }
+
+    /* Active Timer Panel */
+    .timer-box {
+      border: 1px solid rgba(45, 212, 191, 0.4);
+      background: var(--bg-inset);
+      border-radius: var(--radius-md);
+      padding: 22px 16px;
+      text-align: center;
+    }
+
+    .timer-status {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .timer-digits {
+      margin: 8px 0 4px;
+      font-size: 3.1rem;
+      font-weight: 700;
+      color: #f0f7f8;
+      letter-spacing: -0.02em;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    @media (min-width: 560px) {
+      .grid-2 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* Symptom Chips */
+    .symptom-grid {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    @media (min-width: 520px) {
+      .symptom-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 760px) {
+      .symptom-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .symptom-btn {
+      min-height: 56px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid #254046;
+      background: #0f1b1e;
+      color: #d7e6e8;
+      font-size: 0.96rem;
+      font-weight: 600;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .symptom-btn[aria-pressed="true"] {
+      border-color: var(--accent);
+      background: #183b40;
+      color: #d9fbf5;
+    }
+
+    .symptom-check {
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      border: 1.5px solid #355860;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 0.85rem;
+      font-weight: 800;
+    }
+
+    .symptom-btn[aria-pressed="true"] .symptom-check {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: var(--accent-text);
+    }
+
+    /* Severity Selector */
+    .severity-panel {
+      border: 1px solid rgba(45, 212, 191, 0.4);
+      background: var(--bg-inset);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .severity-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+
+    @media (min-width: 600px) {
+      .severity-grid {
+        grid-template-columns: repeat(10, 1fr);
+      }
+    }
+
+    .sev-btn {
+      min-height: 48px;
+      border-radius: var(--radius-sm);
+      border: 1px solid #294348;
+      background: #16272b;
+      color: var(--text-primary);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .sev-btn[aria-pressed="true"] {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: var(--accent-text);
+    }
+
+    /* Sliders & Daily Log */
+    .slider-card {
+      border: 1px solid #1e3338;
+      background: var(--bg-inset);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .slider-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .slider-header label {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .slider-value {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    input[type="range"].fnd-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 14px;
+      border-radius: 999px;
+      background: #1a3035;
+      cursor: pointer;
+    }
+
+    input[type="range"].fnd-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 3px solid #0b1416;
+      box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.35);
+      cursor: pointer;
+    }
+
+    input[type="range"].fnd-slider::-moz-range-thumb {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 3px solid #0b1416;
+      box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.35);
+      cursor: pointer;
+    }
+
+    .scale-tap-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+
+    .scale-tap-btn {
+      min-height: 44px;
+      border-radius: 10px;
+      border: 1px solid #264147;
+      background: #142327;
+      color: #c5d8db;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .scale-tap-btn[aria-pressed="true"] {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: var(--accent-text);
+    }
+
+    .scale-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* Form Controls */
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #d6e5e7;
+    }
+
+    .field-input,
+    .field-textarea {
+      width: 100%;
+      min-height: 50px;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid #274349;
+      background: var(--bg-inset);
+      color: var(--text-primary);
+      font-size: 1rem;
+    }
+
+    .field-textarea {
+      min-height: 106px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .field-input::placeholder,
+    .field-textarea::placeholder {
+      color: #6b8489;
+    }
+
+    .inline-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    /* Lists */
+    .divider-list {
+      list-style: none;
+      margin: 14px 0 0;
+      padding: 0;
+    }
+
+    .divider-list li {
+      padding: 14px 0;
+      border-top: 1px solid #1d3237;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .divider-list li:first-child {
+      border-top: none;
+      padding-top: 4px;
+    }
+
+    .small-btn {
+      min-height: 44px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1px solid #29464c;
+      background: #142428;
+      color: var(--text-primary);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .small-btn-warn {
+      min-height: 44px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--warning-border);
+      background: var(--warning-bg);
+      color: var(--warning-text);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .text-link-btn {
+      min-height: 44px;
+      padding: 6px 8px;
+      border: none;
+      background: transparent;
+      color: var(--accent);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+
+    /* Stats & Bar Chart */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .stat-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px;
+    }
+
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    .stat-value {
+      margin-top: 4px;
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .chart-box {
+      margin-top: 16px;
+      height: 180px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 8px;
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+    }
+
+    .chart-col {
+      flex: 1;
+      height: 100%;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+
+    .chart-bar-wrap {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .chart-bar {
+      width: 100%;
+      max-width: 44px;
+      border-radius: 10px 10px 0 0;
+      background: rgba(45, 212, 191, 0.85);
+      min-height: 14px;
+    }
+
+    .chart-val {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--accent);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .chart-date {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .summary-preview {
+      margin-top: 12px;
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid #1e3338;
+      background: var(--bg-canvas);
+      color: #c7dadc;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      max-height: 280px;
+      overflow: auto;
+    }
+
+    /* Footer Disclaimer */
+    .disclaimer-footer {
+      margin-top: 28px;
+      padding-top: 18px;
+      border-top: 1px solid #1a2d31;
+      text-align: center;
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Fixed Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 40;
+      border-top: 1px solid #1d3237;
+      background: rgba(13, 24, 27, 0.96);
+      backdrop-filter: blur(10px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .bottom-nav-inner {
+      max-width: 820px;
+      margin: 0 auto;
+      height: 64px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .nav-tab {
+      min-height: 44px;
+      border: none;
+      background: transparent;
+      color: #8da7ab;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .nav-tab[aria-current="page"] {
+      color: var(--accent);
+    }
+
+    .nav-tab svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .nav-tab span {
+      font-size: 0.7rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .print-only {
+      display: none;
+    }
+
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+        white-space: pre-wrap;
+        font-family: var(--font-sans);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <header class="top-header no-print">
+      <div class="top-header-inner">
+        <div class="brand">
+          <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true">
+            <rect width="64" height="64" rx="14" fill="#122428" stroke="#1E4B52" stroke-width="2" />
+            <path d="M15 32h8l4-10 5 19 4-14 4 5h9" fill="none" stroke="#2DD4BF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <h1>FND Pulse</h1>
+        </div>
+        <button id="header-active-btn" type="button" class="header-return-btn" style="display: none;">
+          Episode Active · Return
+        </button>
+      </div>
+    </header>
+
+    <main class="main-container">
+      <div id="print-summary-container" class="print-only"></div>
+      <div id="view-root" class="no-print"></div>
+
+      <footer class="disclaimer-footer no-print">
+        FND Pulse is a personal tracking tool only and does not provide medical advice, diagnosis, or treatment.
+      </footer>
+    </main>
+
+    <nav class="bottom-nav no-print" aria-label="Primary Navigation">
+      <div class="bottom-nav-inner">
+        <button type="button" class="nav-tab" data-tab="home" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+          </svg>
+          <span>Home</span>
+        </button>
+        <button type="button" class="nav-tab" data-tab="daily">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="8" y="2" width="8" height="4" rx="1" />
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+            <path d="M12 11h4M12 16h4M8 11h.01M8 16h.01" />
+          </svg>
+          <span>Daily Log</span>
+        </button>
+        <button type="button" class="nav-tab" data-tab="reports">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 3v18h18" />
+            <path d="M18 17V9M13 17V5M8 17v-3" />
+          </svg>
+          <span>Reports</span>
+        </button>
+        <button type="button" class="nav-tab" data-tab="settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+          <span>Settings</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var DEFAULT_ALERT_MESSAGE =
+        "I am currently having an FND episode. I have logged it in FND Pulse and am resting—just wanted to let you know.";
+
+      var SYMPTOM_OPTIONS = [
+        "Functional Seizure",
+        "Limb Weakness / Drop",
+        "Tremor / Spasm",
+        "Speech / Brain Fog",
+        "Sensory Overload",
+        "Dizziness"
+      ];
+
+      var STORAGE_KEYS = {
+        EPISODES: "fnd_pulse_episodes_v1",
+        ACTIVE_EPISODE: "fnd_pulse_active_episode_v1",
+        DAILY_LOGS: "fnd_pulse_daily_logs_v1",
+        MEDICATIONS: "fnd_pulse_medications_v1",
+        CONTACT: "fnd_pulse_trusted_contact_v1"
+      };
+
+      function safeGet(key, fallback, validator) {
+        try {
+          if (typeof window === "undefined" || !window.localStorage) return fallback;
+          var raw = window.localStorage.getItem(key);
+          if (!raw) return fallback;
+          var parsed = JSON.parse(raw);
+          if (validator && !validator(parsed)) return fallback;
+          return parsed;
+        } catch (e) {
+          return fallback;
+        }
+      }
+
+      function safeSet(key, value) {
+        try {
+          if (typeof window !== "undefined" && window.localStorage) {
+            window.localStorage.setItem(key, JSON.stringify(value));
+          }
+        } catch (e) {
+          // Safe ignore on quota/private mode errors
+        }
+      }
+
+      function safeClearAll() {
+        try {
+          if (typeof window !== "undefined" && window.localStorage) {
+            Object.keys(STORAGE_KEYS).forEach(function (k) {
+              window.localStorage.removeItem(STORAGE_KEYS[k]);
+            });
+          }
+        } catch (e) {
+          // Safe ignore
+        }
+      }
+
+      function isArrayOfObjects(v) {
+        return Array.isArray(v);
+      }
+
+      function isActiveObj(v) {
+        return v === null || (typeof v === "object" && v !== null && typeof v.startedAt === "number" && Array.isArray(v.symptoms));
+      }
+
+      function isContactObj(v) {
+        return typeof v === "object" && v !== null && typeof v.name === "string" && typeof v.phone === "string";
+      }
+
+      function escapeHtml(str) {
+        try {
+          return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+        } catch (e) {
+          return "";
+        }
+      }
+
+      function generateId() {
+        try {
+          if (window.crypto && typeof window.crypto.randomUUID === "function") {
+            return window.crypto.randomUUID();
+          }
+        } catch (e) {}
+        return Date.now() + "-" + Math.random().toString(36).slice(2, 9);
+      }
+
+      function formatDuration(totalSeconds) {
+        try {
+          var s = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+          var hrs = Math.floor(s / 3600);
+          var mins = Math.floor((s % 3600) / 60);
+          var secs = s % 60;
+          var pad = function (n) { return n < 10 ? "0" + n : String(n); };
+          return hrs > 0 ? pad(hrs) + ":" + pad(mins) + ":" + pad(secs) : pad(mins) + ":" + pad(secs);
+        } catch (e) {
+          return "00:00";
+        }
+      }
+
+      function formatDurationWords(totalSeconds) {
+        try {
+          var s = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+          var mins = Math.floor(s / 60);
+          var secs = s % 60;
+          if (mins === 0) return secs + "s";
+          if (secs === 0) return mins + "m";
+          return mins + "m " + secs + "s";
+        } catch (e) {
+          return "0s";
+        }
+      }
+
+      function formatDateTime(ts) {
+        try {
+          return new Intl.DateTimeFormat(undefined, {
+            day: "numeric",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit"
+          }).format(new Date(ts));
+        } catch (e) {
+          return "Recorded";
+        }
+      }
+
+      function formatTimeOnly(ts) {
+        try {
+          return new Intl.DateTimeFormat(undefined, {
+            hour: "2-digit",
+            minute: "2-digit"
+          }).format(new Date(ts));
+        } catch (e) {
+          return "--:--";
+        }
+      }
+
+      function getCurrentTimeInput() {
+        try {
+          var d = new Date();
+          var h = d.getHours() < 10 ? "0" + d.getHours() : String(d.getHours());
+          var m = d.getMinutes() < 10 ? "0" + d.getMinutes() : String(d.getMinutes());
+          return h + ":" + m;
+        } catch (e) {
+          return "12:00";
+        }
+      }
+
+      function sanitizePhone(phone) {
+        try {
+          return String(phone || "").replace(/[^\d+]/g, "");
+        } catch (e) {
+          return "";
+        }
+      }
+
+      function buildSmsHref(phone, message) {
+        try {
+          return "sms:" + sanitizePhone(phone) + "?body=" + encodeURIComponent(message || DEFAULT_ALERT_MESSAGE);
+        } catch (e) {
+          return "sms:";
+        }
+      }
+
+      // Application State with safe defaults
+      var loadedContact = safeGet(STORAGE_KEYS.CONTACT, null, isContactObj);
+      var state = {
+        tab: "home",
+        episodes: safeGet(STORAGE_KEYS.EPISODES, [], isArrayOfObjects),
+        activeEpisode: safeGet(STORAGE_KEYS.ACTIVE_EPISODE, null, isActiveObj),
+        dailyLogs: safeGet(STORAGE_KEYS.DAILY_LOGS, [], isArrayOfObjects),
+        medications: safeGet(STORAGE_KEYS.MEDICATIONS, [], isArrayOfObjects),
+        contact: loadedContact ? {
+          name: loadedContact.name || "",
+          phone: loadedContact.phone || "",
+          alertMessage: loadedContact.alertMessage || DEFAULT_ALERT_MESSAGE
+        } : {
+          name: "",
+          phone: "",
+          alertMessage: DEFAULT_ALERT_MESSAGE
+        },
+        draftSymptoms: [],
+        showSeverityStep: false,
+        selectedSeverity: null,
+        confirmDiscard: false,
+        savedNotice: "",
+        triggersDraft: {
+          sleepQuality: 3,
+          fatigueLevel: 3,
+          stressLoad: 3,
+          sensoryExposure: 3
+        },
+        medDraft: {
+          name: "",
+          dose: "",
+          timeTaken: getCurrentTimeInput(),
+          error: ""
+        },
+        showSummaryPreview: false,
+        copiedSummary: false,
+        confirmDeleteEpisodeId: null,
+        confirmClearAll: false
+      };
+
+      var timerInterval = null;
+
+      function syncHeaderActiveButton() {
+        try {
+          var btn = document.getElementById("header-active-btn");
+          if (!btn) return;
+          btn.style.display = state.activeEpisode && state.tab !== "home" ? "inline-flex" : "none";
+        } catch (e) {}
+      }
+
+      function syncNavTabs() {
+        try {
+          var buttons = document.querySelectorAll(".nav-tab");
+          for (var i = 0; i < buttons.length; i++) {
+            var tabName = buttons[i].getAttribute("data-tab");
+            if (tabName === state.tab) {
+              buttons[i].setAttribute("aria-current", "page");
+            } else {
+              buttons[i].removeAttribute("aria-current");
+            }
+          }
+        } catch (e) {}
+      }
+
+      function updateLiveTimerText() {
+        try {
+          var el = document.getElementById("live-timer-display");
+          if (!el || !state.activeEpisode) return;
+          var diff = Math.max(0, Math.floor((Date.now() - state.activeEpisode.startedAt) / 1000));
+          el.textContent = formatDuration(diff);
+        } catch (e) {}
+      }
+
+      function ensureTimerTicker() {
+        try {
+          if (timerInterval) {
+            window.clearInterval(timerInterval);
+            timerInterval = null;
+          }
+          if (state.activeEpisode) {
+            timerInterval = window.setInterval(updateLiveTimerText, 1000);
+          }
+        } catch (e) {}
+      }
+
+      function buildDoctorSummaryText() {
+        try {
+          var total = state.episodes.length;
+          var totalSec = state.episodes.reduce(function (acc, ep) { return acc + (ep.durationSeconds || 0); }, 0);
+          var avgSec = total > 0 ? Math.round(totalSec / total) : 0;
+          var rated = state.episodes.filter(function (ep) { return typeof ep.severity === "number" && ep.severity !== null; });
+          var avgSev = rated.length > 0
+            ? (rated.reduce(function (acc, ep) { return acc + ep.severity; }, 0) / rated.length).toFixed(1)
+            : null;
+
+          var lines = [
+            "FND PULSE — NEUROLOGY APPOINTMENT SUMMARY",
+            "Prepared: " + new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date()),
+            "",
+            "1. EPISODE OVERVIEW",
+            "- Total logged episodes: " + total,
+            "- Average episode duration: " + (total > 0 ? formatDurationWords(avgSec) : "No episodes logged"),
+            "- Average severity (1–10): " + (avgSev !== null ? avgSev + " / 10" : "Not rated")
+          ];
+
+          if (total > 0) {
+            var counts = {};
+            state.episodes.forEach(function (ep) {
+              (ep.symptoms || []).forEach(function (sym) {
+                counts[sym] = (counts[sym] || 0) + 1;
+              });
+            });
+            var sorted = Object.keys(counts)
+              .map(function (k) { return [k, counts[k]]; })
+              .sort(function (a, b) { return b[1] - a[1]; });
+            if (sorted.length > 0) {
+              lines.push("- Most frequent symptoms: " + sorted.map(function (item) { return item[0] + " (" + item[1] + ")"; }).join(", "));
+            }
+            lines.push("", "2. RECENT EPISODE LOG (UP TO LAST 15)");
+            state.episodes.slice(0, 15).forEach(function (ep, idx) {
+              var sev = ep.severity !== null && ep.severity !== undefined ? "Severity " + ep.severity + "/10" : "No severity rating";
+              var syms = ep.symptoms && ep.symptoms.length > 0 ? ep.symptoms.join(", ") : "No symptoms tagged";
+              lines.push((idx + 1) + ". " + formatDateTime(ep.startedAt) + " | Duration: " + formatDurationWords(ep.durationSeconds) + " | " + sev + " | Symptoms: " + syms);
+            });
+          } else {
+            lines.push("", "2. RECENT EPISODE LOG", "No episodes recorded yet.");
+          }
+
+          if (state.dailyLogs.length > 0) {
+            var recentLogs = state.dailyLogs.slice(0, 7);
+            var avgField = function (field) {
+              var sum = recentLogs.reduce(function (acc, item) { return acc + (item[field] || 0); }, 0);
+              return (sum / recentLogs.length).toFixed(1);
+            };
+            lines.push(
+              "",
+              "3. DAILY TRIGGER AVERAGES (LAST " + recentLogs.length + " CHECK-INS, SCALE 1–5)",
+              "- Sleep Quality: " + avgField("sleepQuality") + " / 5",
+              "- Fatigue Level: " + avgField("fatigueLevel") + " / 5",
+              "- Stress Load: " + avgField("stressLoad") + " / 5",
+              "- Sensory Exposure: " + avgField("sensoryExposure") + " / 5"
+            );
+          }
+
+          lines.push("", "4. MEDICATIONS & SUPPLEMENTS LOGGED");
+          if (state.medications.length > 0) {
+            state.medications.slice(0, 15).forEach(function (med) {
+              lines.push("- " + med.name + " (" + med.dose + ") — Taken at " + med.timeTaken + " (" + formatDateTime(med.recordedAt) + ")");
+            });
+          } else {
+            lines.push("No medications or supplements logged.");
+          }
+
+          lines.push("", "Note: Generated from personal tracking records in FND Pulse. Not a diagnostic tool.");
+          return lines.join("\n");
+        } catch (e) {
+          return "FND Pulse Summary unavailable.";
+        }
+      }
+
+      function renderHome() {
+        var isActive = !!state.activeEpisode;
+        var currentSymptoms = isActive ? state.activeEpisode.symptoms : state.draftSymptoms;
+        var cleanPhone = sanitizePhone(state.contact.phone);
+        var hasContact = cleanPhone.length > 0;
+        var contactName = state.contact.name.trim() || "Trusted Contact";
+        var elapsed = isActive ? Math.max(0, Math.floor((Date.now() - state.activeEpisode.startedAt) / 1000)) : 0;
+        var latest = state.episodes.length > 0 ? state.episodes[0] : null;
+
+        var html = '<div class="stack">';
+
+        if (state.savedNotice) {
+          html +=
+            '<div class="notice-banner" role="status">' +
+            '<span>' + escapeHtml(state.savedNotice) + '</span>' +
+            '<button type="button" class="notice-dismiss" data-action="dismiss-notice" aria-label="Dismiss notice">✕</button>' +
+            '</div>';
+        }
+
+        html += '<section class="card" aria-label="Episode Flare Logger">';
+        if (!isActive) {
+          html +=
+            '<p class="subtext" style="text-align:center;margin-top:0;">One-tap flare timer and symptom tracker</p>' +
+            '<button type="button" class="btn-primary-giant" data-action="start-episode">' +
+            '<span class="giant-title">LOG EPISODE NOW</span>' +
+            '<span class="giant-sub">Tap to start timer &amp; show caregiver alerts</span>' +
+            '</button>';
+        } else {
+          html += '<div class="stack" style="gap:16px;">';
+          html +=
+            '<div class="timer-box">' +
+            '<div class="timer-status">Episode in progress · Started ' + escapeHtml(formatTimeOnly(state.activeEpisode.startedAt)) + '</div>' +
+            '<div id="live-timer-display" class="timer-digits mono-tabular" aria-live="polite">' + escapeHtml(formatDuration(elapsed)) + '</div>' +
+            '<p class="subtext">You are safe. Breathe slowly and tap symptoms below if helpful.</p>' +
+            '</div>';
+
+          if (hasContact) {
+            html +=
+              '<div class="grid-2" aria-label="Caregiver Alerts">' +
+              '<a class="btn-action-contact" href="tel:' + escapeHtml(cleanPhone) + '">Call ' + escapeHtml(contactName) + '</a>' +
+              '<a class="btn-action-contact" href="' + escapeHtml(buildSmsHref(state.contact.phone, state.contact.alertMessage)) + '">Text ' + escapeHtml(contactName) + '</a>' +
+              '</div>';
+          } else {
+            html +=
+              '<button type="button" class="btn-secondary" data-action="go-settings">' +
+              '+ Set Up Trusted Contact' +
+              '</button>';
+          }
+
+          if (!state.showSeverityStep) {
+            html +=
+              '<button type="button" class="btn-primary" data-action="open-severity">' +
+              'Stop &amp; Save Episode' +
+              '</button>';
+          } else {
+            html += '<div class="severity-panel">';
+            html +=
+              '<div><strong style="font-size:1rem;">Rate Episode Severity (Optional)</strong>' +
+              '<p class="subtext">1 is mild, 10 is severe. You can skip this if you need to rest.</p></div>';
+            html += '<div class="severity-grid">';
+            for (var n = 1; n <= 10; n++) {
+              var pressed = state.selectedSeverity === n ? "true" : "false";
+              html += '<button type="button" class="sev-btn mono-tabular" data-action="select-severity" data-val="' + n + '" aria-pressed="' + pressed + '">' + n + '</button>';
+            }
+            html += '</div>';
+            var saveText = state.selectedSeverity !== null
+              ? "Save (Severity " + state.selectedSeverity + "/10)"
+              : "Save Without Rating";
+            html +=
+              '<div class="grid-2">' +
+              '<button type="button" class="btn-primary" data-action="confirm-save-episode">' + saveText + '</button>' +
+              '<button type="button" class="btn-secondary" data-action="cancel-severity">Keep Timer Running</button>' +
+              '</div>';
+
+            if (!state.confirmDiscard) {
+              html += '<div style="text-align:center;"><button type="button" class="text-link-btn" style="color:#9fb6ba;" data-action="prompt-discard">Started by mistake? Discard timer</button></div>';
+            } else {
+              html +=
+                '<div class="inline-row" style="justify-content:center;flex-wrap:wrap;">' +
+                '<span class="subtext" style="margin:0;">Discard this active timer?</span>' +
+                '<button type="button" class="small-btn-warn" data-action="confirm-discard">Yes, Discard</button>' +
+                '<button type="button" class="small-btn" data-action="cancel-discard">Cancel</button>' +
+                '</div>';
+            }
+            html += '</div>';
+          }
+          html += '</div>';
+        }
+        html += '</section>';
+
+        // Symptom Chips
+        html += '<section class="card" aria-labelledby="symptoms-heading">';
+        html +=
+          '<div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;">' +
+          '<h2 id="symptoms-heading">Symptoms</h2>' +
+          '<span class="subtext" style="margin:0;">' +
+          (isActive ? currentSymptoms.length + " selected for this flare" : "Tap symptoms to include when you start") +
+          '</span></div>';
+        html += '<div class="symptom-grid">';
+        SYMPTOM_OPTIONS.forEach(function (sym) {
+          var active = currentSymptoms.indexOf(sym) !== -1;
+          html +=
+            '<button type="button" class="symptom-btn" data-action="toggle-symptom" data-symptom="' + escapeHtml(sym) + '" aria-pressed="' + (active ? "true" : "false") + '">' +
+            '<span>' + escapeHtml(sym) + '</span>' +
+            '<span class="symptom-check" aria-hidden="true">' + (active ? "✓" : "") + '</span>' +
+            '</button>';
+        });
+        html += '</div></section>';
+
+        if (latest) {
+          html +=
+            '<section class="card" style="padding:16px 20px;" aria-label="Latest Recorded Episode">' +
+            '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;">' +
+            '<strong style="font-size:0.9rem;">Last Logged Episode</strong>' +
+            '<span class="mono-tabular" style="font-size:0.88rem;color:#9fb6ba;">' +
+            escapeHtml(formatDateTime(latest.startedAt)) + ' · ' + escapeHtml(formatDurationWords(latest.durationSeconds)) +
+            (latest.severity !== null && latest.severity !== undefined ? ' · Severity ' + latest.severity + '/10' : '') +
+            '</span></div>' +
+            (latest.symptoms && latest.symptoms.length > 0
+              ? '<p class="subtext">' + escapeHtml(latest.symptoms.join(" · ")) + '</p>'
+              : '') +
+            '</section>';
+        }
+
+        html += '</div>';
+        return html;
+      }
+
+      function renderDailyLog() {
+        var configs = [
+          { key: "sleepQuality", label: "Sleep Quality", low: "1 · Very Poor", high: "5 · Restorative" },
+          { key: "fatigueLevel", label: "Fatigue Level", low: "1 · Minimal", high: "5 · Exhausted" },
+          { key: "stressLoad", label: "Stress Load", low: "1 · Calm", high: "5 · Overwhelmed" },
+          { key: "sensoryExposure", label: "Sensory Exposure", low: "1 · Quiet / Low", high: "5 · Intense" }
+        ];
+
+        var html = '<div class="stack">';
+
+        if (state.savedNotice) {
+          html +=
+            '<div class="notice-banner" role="status">' +
+            '<span>' + escapeHtml(state.savedNotice) + '</span>' +
+            '<button type="button" class="notice-dismiss" data-action="dismiss-notice" aria-label="Dismiss notice">✕</button>' +
+            '</div>';
+        }
+
+        html += '<section class="card">';
+        html += '<h2>Daily Trigger Check-In</h2>';
+        html += '<p class="subtext">Slide or tap 1 to 5 for each factor to track patterns over time.</p>';
+        html += '<form id="trigger-form" class="stack" style="margin-top:18px;gap:16px;">';
+
+        configs.forEach(function (cfg) {
+          var val = state.triggersDraft[cfg.key];
+          html += '<div class="slider-card">';
+          html +=
+            '<div class="slider-header">' +
+            '<label for="slider-' + cfg.key + '">' + cfg.label + '</label>' +
+            '<span id="val-' + cfg.key + '" class="slider-value mono-tabular">' + val + ' / 5</span>' +
+            '</div>';
+          html +=
+            '<input id="slider-' + cfg.key + '" class="fnd-slider" type="range" min="1" max="5" step="1" value="' + val + '" data-trigger-key="' + cfg.key + '" />';
+          html += '<div class="scale-tap-row">';
+          for (var n = 1; n <= 5; n++) {
+            html +=
+              '<button type="button" class="scale-tap-btn mono-tabular" data-action="tap-trigger" data-key="' + cfg.key + '" data-val="' + n + '" aria-pressed="' + (val === n ? "true" : "false") + '">' + n + '</button>';
+          }
+          html += '</div>';
+          html += '<div class="scale-labels"><span>' + cfg.low + '</span><span>' + cfg.high + '</span></div>';
+          html += '</div>';
+        });
+
+        html += '<button type="submit" class="btn-primary">Save Daily Check-In</button>';
+        html += '</form>';
+
+        if (state.dailyLogs.length > 0) {
+          html += '<div style="margin-top:20px;border-top:1px solid #1e3338;padding-top:16px;">';
+          html += '<strong style="font-size:0.9rem;color:#c2d6d9;">Recent Check-Ins</strong>';
+          html += '<ul class="divider-list">';
+          state.dailyLogs.slice(0, 4).forEach(function (log) {
+            html +=
+              '<li><div>' +
+              '<div class="mono-tabular" style="font-size:0.9rem;font-weight:600;">' + escapeHtml(formatDateTime(log.recordedAt)) + '</div>' +
+              '<div class="subtext">Sleep ' + log.sleepQuality + '/5 · Fatigue ' + log.fatigueLevel + '/5 · Stress ' + log.stressLoad + '/5 · Sensory ' + log.sensoryExposure + '/5</div>' +
+              '</div></li>';
+          });
+          html += '</ul></div>';
+        }
+        html += '</section>';
+
+        // Medication & Supplement Log
+        html += '<section class="card">';
+        html += '<h2>Medication &amp; Supplement Log</h2>';
+        html += '<p class="subtext">Record doses and times so they appear in your neurology appointment summary.</p>';
+        html += '<form id="med-form" class="stack" style="margin-top:16px;gap:14px;">';
+        html += '<div class="grid-2">';
+        html +=
+          '<div class="field-group">' +
+          '<label class="field-label" for="med-name">Medication / Supplement Name</label>' +
+          '<input id="med-name" class="field-input" type="text" value="' + escapeHtml(state.medDraft.name) + '" placeholder="e.g., Magnesium Glycinate" />' +
+          '</div>';
+        html +=
+          '<div class="field-group">' +
+          '<label class="field-label" for="med-dose">Dose</label>' +
+          '<input id="med-dose" class="field-input" type="text" value="' + escapeHtml(state.medDraft.dose) + '" placeholder="e.g., 200mg" />' +
+          '</div>';
+        html += '</div>';
+
+        html +=
+          '<div class="field-group">' +
+          '<label class="field-label" for="med-time">Time Taken</label>' +
+          '<div class="inline-row">' +
+          '<input id="med-time" class="field-input mono-tabular" type="time" value="' + escapeHtml(state.medDraft.timeTaken) + '" style="flex:1;" />' +
+          '<button type="button" class="small-btn" data-action="med-now" style="min-height:50px;">Set Now</button>' +
+          '</div></div>';
+
+        if (state.medDraft.error) {
+          html += '<p role="alert" style="margin:0;color:#fcd39d;font-size:0.9rem;font-weight:600;">' + escapeHtml(state.medDraft.error) + '</p>';
+        }
+
+        html += '<button type="submit" class="btn-secondary">Log Medication / Supplement</button>';
+        html += '</form>';
+
+        html += '<div style="margin-top:20px;border-top:1px solid #1e3338;padding-top:16px;">';
+        html += '<strong style="font-size:0.9rem;color:#c2d6d9;">Medication History</strong>';
+        if (state.medications.length === 0) {
+          html += '<p class="subtext">No medications or supplements logged yet.</p>';
+        } else {
+          html += '<ul class="divider-list">';
+          state.medications.forEach(function (med) {
+            html +=
+              '<li>' +
+              '<div style="flex:1;min-width:180px;">' +
+              '<div style="font-weight:700;">' + escapeHtml(med.name) + '</div>' +
+              '<div class="mono-tabular subtext">' + escapeHtml(med.dose) + ' · Taken at ' + escapeHtml(med.timeTaken) + ' · ' + escapeHtml(formatDateTime(med.recordedAt)) + '</div>' +
+              '</div>' +
+              '<div class="inline-row">' +
+              '<button type="button" class="small-btn" data-action="repeat-med" data-id="' + escapeHtml(med.id) + '">Log Again</button>' +
+              '<button type="button" class="small-btn" data-action="delete-med" data-id="' + escapeHtml(med.id) + '" aria-label="Delete medication">Delete</button>' +
+              '</div>' +
+              '</li>';
+          });
+          html += '</ul>';
+        }
+        html += '</div></section>';
+
+        html += '</div>';
+        return html;
+      }
+
+      function renderReports() {
+        var total = state.episodes.length;
+        var totalSec = state.episodes.reduce(function (acc, ep) { return acc + (ep.durationSeconds || 0); }, 0);
+        var avgSec = total > 0 ? Math.round(totalSec / total) : 0;
+        var rated = state.episodes.filter(function (ep) { return typeof ep.severity === "number" && ep.severity !== null; });
+        var avgSev = rated.length > 0
+          ? (rated.reduce(function (acc, ep) { return acc + ep.severity; }, 0) / rated.length).toFixed(1)
+          : "—";
+
+        var recentChart = state.episodes.slice(0, 8).reverse();
+        var maxSec = 60;
+        recentChart.forEach(function (ep) {
+          if ((ep.durationSeconds || 0) > maxSec) maxSec = ep.durationSeconds;
+        });
+
+        var summaryText = buildDoctorSummaryText();
+        var printEl = document.getElementById("print-summary-container");
+        if (printEl) printEl.textContent = summaryText;
+
+        var html = '<div class="stack">';
+
+        html +=
+          '<section class="stats-grid" aria-label="Episode Insights Summary">' +
+          '<div class="stat-card"><div class="stat-label">Episodes</div><div class="stat-value mono-tabular">' + total + '</div></div>' +
+          '<div class="stat-card"><div class="stat-label">Avg Duration</div><div class="stat-value mono-tabular" style="color:var(--accent);">' + (total > 0 ? escapeHtml(formatDurationWords(avgSec)) : "0m") + '</div></div>' +
+          '<div class="stat-card"><div class="stat-label">Avg Severity</div><div class="stat-value mono-tabular">' + escapeHtml(String(avgSev)) + '</div></div>' +
+          '</section>';
+
+        html += '<section class="card">';
+        html += '<h2>Neurology Summary</h2>';
+        html += '<p class="subtext">Format recent episodes, average durations, triggers, and medications for NHS appointments.</p>';
+        html +=
+          '<div class="grid-2" style="margin-top:16px;">' +
+          '<button type="button" class="btn-primary" data-action="copy-summary">' +
+          (state.copiedSummary ? "Copied Doctor Summary" : "Copy / Export Summary") +
+          '</button>' +
+          '<button type="button" class="btn-secondary" data-action="print-summary">Print Summary</button>' +
+          '</div>';
+        html +=
+          '<div style="margin-top:8px;">' +
+          '<button type="button" class="text-link-btn" data-action="toggle-summary-preview">' +
+          (state.showSummaryPreview ? "Hide formatted preview" : "Preview formatted summary") +
+          '</button></div>';
+        if (state.showSummaryPreview) {
+          html += '<pre class="summary-preview">' + escapeHtml(summaryText) + '</pre>';
+        }
+        html += '</section>';
+
+        html += '<section class="card">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;">';
+        html += '<h2>Recent Episode Durations</h2>';
+        html += '<span class="subtext" style="margin:0;">Last ' + recentChart.length + ' logged</span></div>';
+        if (recentChart.length === 0) {
+          html += '<p class="subtext" style="margin-top:14px;">No episodes logged yet. Start an episode on the Home tab to see duration trends here.</p>';
+        } else {
+          html += '<div class="chart-box" role="img" aria-label="Bar chart showing durations of recent episodes">';
+          recentChart.forEach(function (ep) {
+            var pct = Math.max(12, Math.round(((ep.durationSeconds || 0) / maxSec) * 100));
+            var shortDate = "";
+            try {
+              shortDate = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short" }).format(new Date(ep.startedAt));
+            } catch (e) {
+              shortDate = "Log";
+            }
+            html +=
+              '<div class="chart-col">' +
+              '<span class="chart-val mono-tabular">' + escapeHtml(formatDurationWords(ep.durationSeconds)) + '</span>' +
+              '<div class="chart-bar-wrap"><div class="chart-bar" style="height:' + pct + '%;"></div></div>' +
+              '<span class="chart-date">' + escapeHtml(shortDate) + '</span>' +
+              '</div>';
+          });
+          html += '</div>';
+        }
+        html += '</section>';
+
+        html += '<section class="card">';
+        html += '<h2>Episode History</h2>';
+        if (state.episodes.length === 0) {
+          html += '<p class="subtext">Your recorded flares will appear here with start times, durations, and symptoms.</p>';
+        } else {
+          html += '<ul class="divider-list">';
+          state.episodes.forEach(function (ep) {
+            var syms = ep.symptoms && ep.symptoms.length > 0 ? ep.symptoms.join(" · ") : "No specific symptoms tagged";
+            var sevText = ep.severity !== null && ep.severity !== undefined ? " · Severity " + ep.severity + "/10" : "";
+            html += '<li>';
+            html +=
+              '<div style="flex:1;min-width:190px;">' +
+              '<div class="mono-tabular" style="font-size:0.92rem;font-weight:700;">' +
+              escapeHtml(formatDateTime(ep.startedAt)) + ' · ' + escapeHtml(formatDurationWords(ep.durationSeconds)) + escapeHtml(sevText) +
+              '</div>' +
+              '<div class="subtext">' + escapeHtml(syms) + '</div>' +
+              '</div>';
+            if (state.confirmDeleteEpisodeId === ep.id) {
+              html +=
+                '<div class="inline-row">' +
+                '<button type="button" class="small-btn-warn" data-action="confirm-delete-ep" data-id="' + escapeHtml(ep.id) + '">Delete</button>' +
+                '<button type="button" class="small-btn" data-action="cancel-delete-ep">Cancel</button>' +
+                '</div>';
+            } else {
+              html += '<button type="button" class="small-btn" data-action="prompt-delete-ep" data-id="' + escapeHtml(ep.id) + '">Delete</button>';
+            }
+            html += '</li>';
+          });
+          html += '</ul>';
+        }
+        html += '</section>';
+
+        html += '</div>';
+        return html;
+      }
+
+      function renderSettings() {
+        var html = '<div class="stack">';
+
+        if (state.savedNotice) {
+          html +=
+            '<div class="notice-banner" role="status">' +
+            '<span>' + escapeHtml(state.savedNotice) + '</span>' +
+            '<button type="button" class="notice-dismiss" data-action="dismiss-notice" aria-label="Dismiss notice">✕</button>' +
+            '</div>';
+        }
+
+        html += '<section class="card">';
+        html += '<h2>Trusted Emergency Contact</h2>';
+        html += '<p class="subtext">Saved locally on your device. Appears immediately as Call and Text buttons when you log an episode.</p>';
+        html += '<form id="contact-form" class="stack" style="margin-top:16px;gap:14px;">';
+        html +=
+          '<div class="field-group">' +
+          '<label class="field-label" for="contact-name">Contact Name</label>' +
+          '<input id="contact-name" class="field-input" type="text" value="' + escapeHtml(state.contact.name) + '" placeholder="e.g., Sam, Mum, Partner" />' +
+          '</div>';
+        html +=
+          '<div class="field-group">' +
+          '<label class="field-label" for="contact-phone">Phone Number</label>' +
+          '<input id="contact-phone" class="field-input mono-tabular" type="tel" inputmode="tel" value="' + escapeHtml(state.contact.phone) + '" placeholder="e.g., 07700 900123" />' +
+          '</div>';
+        html +=
+          '<div class="field-group">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">' +
+          '<label class="field-label" for="contact-msg">Alert Message</label>' +
+          '<button type="button" class="text-link-btn" style="min-height:36px;font-size:0.8rem;" data-action="reset-default-msg">Reset default</button>' +
+          '</div>' +
+          '<textarea id="contact-msg" class="field-textarea">' + escapeHtml(state.contact.alertMessage) + '</textarea>' +
+          '</div>';
+        html += '<button type="submit" class="btn-primary">Save Contact Settings</button>';
+        html += '</form></section>';
+
+        html += '<section class="card">';
+        html += '<h2>Device Storage</h2>';
+        html += '<p class="subtext">All episodes, trigger logs, medications, and contact details stay privately in this browser.</p>';
+        html += '<div style="margin-top:14px;">';
+        if (!state.confirmClearAll) {
+          html += '<button type="button" class="small-btn" data-action="prompt-clear-all">Clear All Saved Data</button>';
+        } else {
+          html +=
+            '<div class="inline-row" style="flex-wrap:wrap;padding:12px;border-radius:14px;border:1px solid var(--warning-border);background:var(--warning-bg);">' +
+            '<span style="font-size:0.9rem;color:var(--warning-text);">Remove all saved episodes, logs, medications, and contact settings?</span>' +
+            '<button type="button" class="small-btn-warn" data-action="confirm-clear-all">Yes, Clear Data</button>' +
+            '<button type="button" class="small-btn" data-action="cancel-clear-all">Cancel</button>' +
+            '</div>';
+        }
+        html += '</div></section>';
+
+        html += '</div>';
+        return html;
+      }
+
+      function render() {
+        try {
+          var root = document.getElementById("view-root");
+          if (!root) return;
+          if (state.tab === "home") root.innerHTML = renderHome();
+          else if (state.tab === "daily") root.innerHTML = renderDailyLog();
+          else if (state.tab === "reports") root.innerHTML = renderReports();
+          else if (state.tab === "settings") root.innerHTML = renderSettings();
+          syncNavTabs();
+          syncHeaderActiveButton();
+          ensureTimerTicker();
+        } catch (err) {
+          var fallbackRoot = document.getElementById("view-root");
+          if (fallbackRoot) {
+            fallbackRoot.innerHTML =
+              '<div class="card" style="text-align:center;">' +
+              '<h2>View paused safely</h2>' +
+              '<p class="subtext">Your saved records remain safe. Tap below to reload the view.</p>' +
+              '<button type="button" class="btn-primary" style="margin-top:16px;" data-action="recover-home">Return Home</button>' +
+              '</div>';
+          }
+        }
+      }
+
+      // Event Delegation for Clicks
+      document.addEventListener("click", function (e) {
+        try {
+          var navBtn = e.target.closest(".nav-tab");
+          if (navBtn) {
+            state.tab = navBtn.getAttribute("data-tab") || "home";
+            state.savedNotice = "";
+            render();
+            return;
+          }
+
+          if (e.target.id === "header-active-btn") {
+            state.tab = "home";
+            render();
+            return;
+          }
+
+          var actionEl = e.target.closest("[data-action]");
+          if (!actionEl) return;
+          var action = actionEl.getAttribute("data-action");
+
+          if (action === "dismiss-notice") {
+            state.savedNotice = "";
+            render();
+          } else if (action === "recover-home") {
+            state.tab = "home";
+            render();
+          } else if (action === "go-settings") {
+            state.tab = "settings";
+            render();
+          } else if (action === "start-episode") {
+            state.activeEpisode = {
+              startedAt: Date.now(),
+              symptoms: state.draftSymptoms.slice()
+            };
+            state.draftSymptoms = [];
+            state.showSeverityStep = false;
+            state.selectedSeverity = null;
+            state.confirmDiscard = false;
+            state.savedNotice = "";
+            safeSet(STORAGE_KEYS.ACTIVE_EPISODE, state.activeEpisode);
+            render();
+          } else if (action === "toggle-symptom") {
+            var sym = actionEl.getAttribute("data-symptom");
+            if (!sym) return;
+            if (state.activeEpisode) {
+              var idx = state.activeEpisode.symptoms.indexOf(sym);
+              if (idx === -1) state.activeEpisode.symptoms.push(sym);
+              else state.activeEpisode.symptoms.splice(idx, 1);
+              safeSet(STORAGE_KEYS.ACTIVE_EPISODE, state.activeEpisode);
+            } else {
+              var dIdx = state.draftSymptoms.indexOf(sym);
+              if (dIdx === -1) state.draftSymptoms.push(sym);
+              else state.draftSymptoms.splice(dIdx, 1);
+            }
+            render();
+          } else if (action === "open-severity") {
+            state.showSeverityStep = true;
+            render();
+          } else if (action === "cancel-severity") {
+            state.showSeverityStep = false;
+            state.confirmDiscard = false;
+            render();
+          } else if (action === "select-severity") {
+            var val = Number(actionEl.getAttribute("data-val"));
+            state.selectedSeverity = state.selectedSeverity === val ? null : val;
+            render();
+          } else if (action === "confirm-save-episode") {
+            if (!state.activeEpisode) return;
+            var ended = Date.now();
+            var dur = Math.max(1, Math.round((ended - state.activeEpisode.startedAt) / 1000));
+            state.episodes.unshift({
+              id: generateId(),
+              startedAt: state.activeEpisode.startedAt,
+              endedAt: ended,
+              durationSeconds: dur,
+              symptoms: state.activeEpisode.symptoms.slice(),
+              severity: state.selectedSeverity
+            });
+            state.activeEpisode = null;
+            state.showSeverityStep = false;
+            state.selectedSeverity = null;
+            state.confirmDiscard = false;
+            state.savedNotice = "Episode saved to your history. Take your time resting.";
+            safeSet(STORAGE_KEYS.EPISODES, state.episodes);
+            safeSet(STORAGE_KEYS.ACTIVE_EPISODE, null);
+            render();
+          } else if (action === "prompt-discard") {
+            state.confirmDiscard = true;
+            render();
+          } else if (action === "cancel-discard") {
+            state.confirmDiscard = false;
+            render();
+          } else if (action === "confirm-discard") {
+            state.activeEpisode = null;
+            state.showSeverityStep = false;
+            state.selectedSeverity = null;
+            state.confirmDiscard = false;
+            safeSet(STORAGE_KEYS.ACTIVE_EPISODE, null);
+            render();
+          } else if (action === "tap-trigger") {
+            var tKey = actionEl.getAttribute("data-key");
+            var tVal = Number(actionEl.getAttribute("data-val"));
+            if (tKey && tVal >= 1 && tVal <= 5) {
+              state.triggersDraft[tKey] = tVal;
+              render();
+            }
+          } else if (action === "med-now") {
+            var nameInput = document.getElementById("med-name");
+            var doseInput = document.getElementById("med-dose");
+            if (nameInput) state.medDraft.name = nameInput.value;
+            if (doseInput) state.medDraft.dose = doseInput.value;
+            state.medDraft.timeTaken = getCurrentTimeInput();
+            render();
+          } else if (action === "repeat-med") {
+            var rId = actionEl.getAttribute("data-id");
+            var found = state.medications.find(function (m) { return m.id === rId; });
+            if (found) {
+              state.medications.unshift({
+                id: generateId(),
+                name: found.name,
+                dose: found.dose,
+                timeTaken: getCurrentTimeInput(),
+                recordedAt: Date.now()
+              });
+              safeSet(STORAGE_KEYS.MEDICATIONS, state.medications);
+              state.savedNotice = "Logged " + found.name + " again.";
+              render();
+            }
+          } else if (action === "delete-med") {
+            var mId = actionEl.getAttribute("data-id");
+            state.medications = state.medications.filter(function (m) { return m.id !== mId; });
+            safeSet(STORAGE_KEYS.MEDICATIONS, state.medications);
+            render();
+          } else if (action === "copy-summary") {
+            var text = buildDoctorSummaryText();
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+              navigator.clipboard.writeText(text).then(function () {
+                state.copiedSummary = true;
+                render();
+                window.setTimeout(function () {
+                  state.copiedSummary = false;
+                  if (state.tab === "reports") render();
+                }, 3000);
+              }).catch(function () {
+                state.showSummaryPreview = true;
+                render();
+              });
+            } else {
+              state.showSummaryPreview = true;
+              render();
+            }
+          } else if (action === "print-summary") {
+            try {
+              window.print();
+            } catch (err) {
+              state.showSummaryPreview = true;
+              render();
+            }
+          } else if (action === "toggle-summary-preview") {
+            state.showSummaryPreview = !state.showSummaryPreview;
+            render();
+          } else if (action === "prompt-delete-ep") {
+            state.confirmDeleteEpisodeId = actionEl.getAttribute("data-id");
+            render();
+          } else if (action === "cancel-delete-ep") {
+            state.confirmDeleteEpisodeId = null;
+            render();
+          } else if (action === "confirm-delete-ep") {
+            var delId = actionEl.getAttribute("data-id");
+            state.episodes = state.episodes.filter(function (ep) { return ep.id !== delId; });
+            state.confirmDeleteEpisodeId = null;
+            safeSet(STORAGE_KEYS.EPISODES, state.episodes);
+            render();
+          } else if (action === "reset-default-msg") {
+            var msgEl = document.getElementById("contact-msg");
+            state.contact.alertMessage = DEFAULT_ALERT_MESSAGE;
+            if (msgEl) msgEl.value = DEFAULT_ALERT_MESSAGE;
+          } else if (action === "prompt-clear-all") {
+            state.confirmClearAll = true;
+            render();
+          } else if (action === "cancel-clear-all") {
+            state.confirmClearAll = false;
+            render();
+          } else if (action === "confirm-clear-all") {
+            safeClearAll();
+            state.episodes = [];
+            state.activeEpisode = null;
+            state.dailyLogs = [];
+            state.medications = [];
+            state.contact = { name: "", phone: "", alertMessage: DEFAULT_ALERT_MESSAGE };
+            state.draftSymptoms = [];
+            state.confirmClearAll = false;
+            state.savedNotice = "All local data has been cleared.";
+            render();
+          }
+        } catch (err) {}
+      });
+
+      // Live slider updates without disrupting drag focus
+      document.addEventListener("input", function (e) {
+        try {
+          var key = e.target.getAttribute("data-trigger-key");
+          if (key) {
+            var val = Number(e.target.value);
+            state.triggersDraft[key] = val;
+            var label = document.getElementById("val-" + key);
+            if (label) label.textContent = val + " / 5";
+            var btns = document.querySelectorAll('[data-action="tap-trigger"][data-key="' + key + '"]');
+            for (var i = 0; i < btns.length; i++) {
+              btns[i].setAttribute("aria-pressed", Number(btns[i].getAttribute("data-val")) === val ? "true" : "false");
+            }
+          }
+        } catch (err) {}
+      });
+
+      // Form submissions
+      document.addEventListener("submit", function (e) {
+        try {
+          if (e.target.id === "trigger-form") {
+            e.preventDefault();
+            state.dailyLogs.unshift({
+              id: generateId(),
+              recordedAt: Date.now(),
+              sleepQuality: state.triggersDraft.sleepQuality,
+              fatigueLevel: state.triggersDraft.fatigueLevel,
+              stressLoad: state.triggersDraft.stressLoad,
+              sensoryExposure: state.triggersDraft.sensoryExposure
+            });
+            safeSet(STORAGE_KEYS.DAILY_LOGS, state.dailyLogs);
+            state.savedNotice = "Daily trigger check-in saved.";
+            render();
+          } else if (e.target.id === "med-form") {
+            e.preventDefault();
+            var nameEl = document.getElementById("med-name");
+            var doseEl = document.getElementById("med-dose");
+            var timeEl = document.getElementById("med-time");
+            var medName = nameEl ? nameEl.value.trim() : "";
+            var medDose = doseEl ? doseEl.value.trim() : "";
+            var medTime = timeEl ? timeEl.value : getCurrentTimeInput();
+
+            if (!medName) {
+              state.medDraft = {
+                name: "",
+                dose: medDose,
+                timeTaken: medTime,
+                error: "Please enter a medication or supplement name."
+              };
+              render();
+              return;
+            }
+
+            state.medications.unshift({
+              id: generateId(),
+              name: medName,
+              dose: medDose || "Standard dose",
+              timeTaken: medTime || getCurrentTimeInput(),
+              recordedAt: Date.now()
+            });
+            safeSet(STORAGE_KEYS.MEDICATIONS, state.medications);
+            state.medDraft = {
+              name: "",
+              dose: "",
+              timeTaken: getCurrentTimeInput(),
+              error: ""
+            };
+            state.savedNotice = "Medication / supplement added to history.";
+            render();
+          } else if (e.target.id === "contact-form") {
+            e.preventDefault();
+            var cName = document.getElementById("contact-name");
+            var cPhone = document.getElementById("contact-phone");
+            var cMsg = document.getElementById("contact-msg");
+            state.contact = {
+              name: cName ? cName.value.trim() : "",
+              phone: cPhone ? cPhone.value.trim() : "",
+              alertMessage: cMsg && cMsg.value.trim() ? cMsg.value.trim() : DEFAULT_ALERT_MESSAGE
+            };
+            safeSet(STORAGE_KEYS.CONTACT, state.contact);
+            state.savedNotice = "Trusted contact settings saved.";
+            render();
+          }
+        } catch (err) {}
+      });
+
+      // Initial render
+      render();
+    })();
+  </script>
+</body>
+</html>
